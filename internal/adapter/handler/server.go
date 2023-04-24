@@ -43,8 +43,12 @@ func (h HttpServer) StartHttpAppServer(httpWorkerAdapter *HttpWorkerAdapter) {
 	health.Use(MiddleWareHandlerHeader)
 
 	add_pubkey := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
-    add_pubkey.HandleFunc("/rsapubkey", httpWorkerAdapter.AddPublicKey)
+    add_pubkey.HandleFunc("/addTenantPublicKey", httpWorkerAdapter.AddTenantPublicKey)
 	add_pubkey.Use(MiddleWareHandlerHeader)
+
+	get_pubkey := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+	get_pubkey.HandleFunc("/getHostPublicKey", httpWorkerAdapter.GetHostPublicKey)
+	get_pubkey.Use(MiddleWareHandlerHeader)
 
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpAppServer.Server.Port),      	

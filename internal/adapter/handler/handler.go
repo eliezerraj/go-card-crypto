@@ -95,10 +95,33 @@ func (h *HttpWorkerAdapter) AddTenantPublicKey(rw http.ResponseWriter, req *http
 	rsa_key := core.NewRSAKey(
 		core.WithFileName(fileName),
 		core.WithTenantId(tenantId),
+		core.WithStatus("ACTIVE"),
 		core.WithRSAPublicKey(fileB64),
 	)
 
 	res, err := h.workerService.AddTenantPublicKey(*rsa_key)
+	if err != nil {
+		json.NewEncoder(rw).Encode(err.Error())
+		return
+	}
+
+	json.NewEncoder(rw).Encode(res)
+	return
+}
+
+func (h *HttpWorkerAdapter) GetHostPublicKey(rw http.ResponseWriter, req *http.Request) {
+	childLogger.Debug().Msg("GetHostPublicKey")
+	
+	tenantId := req.FormValue("tenant_id")
+	hostId := req.FormValue("host_id")
+
+	rsa_key := core.NewRSAKey(
+		core.WithTenantId(tenantId),
+		core.WithHostId(hostId),
+		core.WithStatus("ACTIVE"),
+	)
+
+	res, err := h.workerService.GetHostPublicKey(*rsa_key)
 	if err != nil {
 		json.NewEncoder(rw).Encode(err.Error())
 		return
