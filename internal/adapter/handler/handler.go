@@ -71,7 +71,14 @@ func (h *HttpWorkerAdapter) AddPublicKey(rw http.ResponseWriter, req *http.Reque
 		return
 	}
 
-    f, err := os.OpenFile(file_handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
+	fileBytes, err := ioutil.ReadAll(file)
+    if err != nil {
+		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
+		return
+    }
+
+
+    /*f, err := os.OpenFile(file_handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
     if err != nil {
 		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
 		return
@@ -80,9 +87,9 @@ func (h *HttpWorkerAdapter) AddPublicKey(rw http.ResponseWriter, req *http.Reque
 	fmt.Println("f :", f)
 
 	reader := bufio.NewReader(f)
-	content, _ := ioutil.ReadAll(reader)
+	content, _ := ioutil.ReadAll(reader)*/
 
-	fileB64 := base64.StdEncoding.EncodeToString(content)
+	fileB64 := base64.StdEncoding.EncodeToString(fileBytes)
 	fmt.Println("fileB64: " + fileB64)
 
 	rsa_key := core.NewRSAKey(
