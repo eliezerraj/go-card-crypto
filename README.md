@@ -7,6 +7,6 @@ CREATE TABLE public."rsa_key" (
 	id serial4 NOT NULL,
 	tenant_id varchar(100) NULL,
 	file_name	varchar(100) NULL,
-	rsa_public_key varchar(100) null,
+	rsa_public_key varchar null,
 	created_date timestamp
 );

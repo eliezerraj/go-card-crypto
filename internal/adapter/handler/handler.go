@@ -4,11 +4,9 @@ import(
 	"github.com/rs/zerolog/log"
 	"encoding/json"
 	"net/http"
-	"os"
 	"io/ioutil"
 	"fmt"
 	"encoding/base64"
-	"bufio"
 
 	"github.com/go-card-crypto/internal/erro"
 	"github.com/go-card-crypto/internal/core"
@@ -18,7 +16,7 @@ import(
 var (
 	childLogger = log.With().Str("handler", "handler").Logger()
 )
-const MAX_UPLOAD_SIZE = 1024 * 1024
+const MAX_UPLOAD_SIZE = 512 * 1024
 
 type HttpWorkerAdapter struct {
 	workerService 	*service.WorkerService
@@ -58,18 +56,30 @@ func (h *HttpWorkerAdapter) AddPublicKey(rw http.ResponseWriter, req *http.Reque
     }
     defer file.Close()
 
-	buff := make([]byte, 512)
+	if file_handler.Size <= 0 {
+		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
+		return
+	}
+	
+	// Check mimetype
+	/*buff := make([]byte, 512)
 	_, err = file.Read(buff)
 	if err != nil {
 		json.NewEncoder(rw).Encode(erro.ErrStatusInternalServerError)
 		return
 	}
-
 	filetype := http.DetectContentType(buff)
 	if filetype != "text/plain; charset=utf-8" {
 		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
 		return
-	}
+	}*/
+
+	// Save file
+	/*tempFile, err := ioutil.TempFile("./", fileName)
+    if err != nil {
+        fmt.Println(err)
+    }
+    defer tempFile.Close()*/
 
 	fileBytes, err := ioutil.ReadAll(file)
     if err != nil {
@@ -77,17 +87,7 @@ func (h *HttpWorkerAdapter) AddPublicKey(rw http.ResponseWriter, req *http.Reque
 		return
     }
 
-
-    /*f, err := os.OpenFile(file_handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)
-    if err != nil {
-		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
-		return
-    }
-	defer f.Close()
-	fmt.Println("f :", f)
-
-	reader := bufio.NewReader(f)
-	content, _ := ioutil.ReadAll(reader)*/
+	//tempFile.Write(fileBytes) // Save file
 
 	fileB64 := base64.StdEncoding.EncodeToString(fileBytes)
 	fmt.Println("fileB64: " + fileB64)
