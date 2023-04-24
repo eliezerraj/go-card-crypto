@@ -26,6 +26,10 @@ var (
 	ErrPreparedQuery 	= errors.New("Erro na preparação da Query para o Dynamo")
 	ErrQueryEmpty	 	= errors.New("Query string não pode ser vazia")
 	ErrEventDetail	 	= errors.New("Evento não suportado")
+	ErrFile			 	= errors.New("Erro no envio do arquivo")
+	ErrFileSize		 	= errors.New("Tamanho do arquivo inválido (Muito grande)")
+	ErrStatusInternalServerError	= errors.New("Erro Interno !!!!")
+	ErrFileInvalid		= errors.New("Tipo do arquivo inválido")
 )
 func HandlerHttpError(w http.ResponseWriter, err error) { 
 	switch err {

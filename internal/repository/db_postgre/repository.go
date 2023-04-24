@@ -2,12 +2,12 @@ package db_postgre
 
 import (
 	"context"
-//	"time"
+	"time"
 
 	_ "github.com/lib/pq"
 //	"github.com/rs/zerolog/log"
 
-//	"github.com/go-card-crypto/internal/core"
+	"github.com/go-card-crypto/internal/core"
 	"github.com/go-card-crypto/internal/erro"
 
 )
@@ -41,6 +41,33 @@ func (w WorkerRepository) Ping() (bool, error) {
 
 	return true, nil
 }
+
+func (w WorkerRepository) AddPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
+	childLogger.Debug().Msg("AddPublicKey")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	client, _ := w.databaseHelper.GetConnection(ctx)
+
+	stmt, err := client.Prepare(`INSERT INTO rsa_key ( 	tenant_id, 
+														file_name,
+														rsa_public_key, 
+														created_date) 
+														VALUES( $1, $2, $3, $4) `)
+
+	if err != nil {
+		childLogger.Error().Err(err).Msg("Prepare statement")
+		return nil, erro.ErrInsert
+	}
+	_, err = stmt.Exec(	rsaKey.TenantId, 
+						rsaKey.FileName, 
+						rsaKey.RSAPublicKey,
+						time.Now())
+	
+	return &rsaKey , nil				
+}
+
 /*
 func (w WorkerRepository) GetPerson(id string) (core.Person, error){
 	childLogger.Debug().Msg("++++++++++++++++++++++++++++++++")

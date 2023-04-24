@@ -11,8 +11,9 @@ import (
 	//"io/ioutil"
 
 	"github.com/rs/zerolog/log"
-	//"github.com/go-worker-golden-data-rmq/internal/core"
 
+	"github.com/go-card-crypto/internal/core"
+	//"github.com/go-card-crypto/internal/erro"
 	"github.com/go-card-crypto/internal/repository/db_postgre"
 
 )
@@ -77,8 +78,13 @@ func (w WorkerService) GetRSAKey() (error){
 	return nil
 }
 
-func (w WorkerService) AddPublicKey() (error){
+func (w WorkerService) AddPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
 	childLogger.Debug().Msg("AddPublicKey")
 
-	return nil
+	res, err := w.workerRepository.AddPublicKey(rsaKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
