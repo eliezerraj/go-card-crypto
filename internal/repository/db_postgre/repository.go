@@ -42,8 +42,8 @@ func (w WorkerRepository) Ping() (bool, error) {
 	return true, nil
 }
 
-func (w WorkerRepository) AddPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
-	childLogger.Debug().Msg("AddPublicKey")
+func (w WorkerRepository) AddTenantPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
+	childLogger.Debug().Msg("AddTenantPublicKey")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

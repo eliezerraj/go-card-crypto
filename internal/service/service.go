@@ -78,7 +78,18 @@ func (w WorkerService) GetRSAKey() (error){
 	return nil
 }
 
-func (w WorkerService) AddPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
+func (w WorkerService) AddTenantPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
+	childLogger.Debug().Msg("AddTenantPublicKey")
+
+	res, err := w.workerRepository.AddTenantPublicKey(rsaKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (w WorkerService) GetPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
 	childLogger.Debug().Msg("AddPublicKey")
 
 	res, err := w.workerRepository.AddPublicKey(rsaKey)

@@ -37,8 +37,8 @@ func (h *HttpWorkerAdapter) Health(rw http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func (h *HttpWorkerAdapter) AddPublicKey(rw http.ResponseWriter, req *http.Request) {
-	childLogger.Debug().Msg("AddPublicKey")
+func (h *HttpWorkerAdapter) AddTenantPublicKey(rw http.ResponseWriter, req *http.Request) {
+	childLogger.Debug().Msg("AddTenantPublicKey")
 	
 	err := req.ParseMultipartForm(MAX_UPLOAD_SIZE) //10 MB
 	if err != nil {
@@ -98,7 +98,7 @@ func (h *HttpWorkerAdapter) AddPublicKey(rw http.ResponseWriter, req *http.Reque
 		core.WithRSAPublicKey(fileB64),
 	)
 
-	res, err := h.workerService.AddPublicKey(*rsa_key)
+	res, err := h.workerService.AddTenantPublicKey(*rsa_key)
 	if err != nil {
 		json.NewEncoder(rw).Encode(err.Error())
 		return
