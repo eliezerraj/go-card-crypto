@@ -5,7 +5,6 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-//	"github.com/rs/zerolog/log"
 
 	"github.com/go-card-crypto/internal/core"
 	"github.com/go-card-crypto/internal/erro"
@@ -42,8 +41,8 @@ func (w WorkerRepository) Ping() (bool, error) {
 	return true, nil
 }
 
-func (w WorkerRepository) AddTenantPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
-	childLogger.Debug().Msg("AddTenantPublicKey")
+func (w WorkerRepository) AddRSAKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
+	childLogger.Debug().Msg("AddRSAKey")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -51,18 +50,22 @@ func (w WorkerRepository) AddTenantPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key
 	client, _ := w.databaseHelper.GetConnection(ctx)
 
 	stmt, err := client.Prepare(`INSERT INTO rsa_key ( 	tenant_id, 
+														host_id,
 														file_name,
+														type_key,
 														rsa_public_key, 
 														status,
 														created_date) 
-														VALUES( $1, $2, $3, $4, $5) `)
+														VALUES( $1, $2, $3, $4, $5, $6, $7) `)
 
 	if err != nil {
 		childLogger.Error().Err(err).Msg("Prepare statement")
 		return nil, erro.ErrInsert
 	}
 	_, err = stmt.Exec(	rsaKey.TenantId, 
+						rsaKey.HostId, 
 						rsaKey.FileName, 
+						rsaKey.TypeKey,
 						rsaKey.RSAPublicKey,
 						rsaKey.Status,
 						time.Now())
@@ -70,9 +73,9 @@ func (w WorkerRepository) AddTenantPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key
 	return &rsaKey , nil				
 }
 
-func (w WorkerRepository) GetHostPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
-	childLogger.Debug().Msg("GetHostPublicKey")
-	childLogger.Debug().Interface("",rsaKey).Msg("GetHostPublicKey")
+func (w WorkerRepository) GetRSAKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
+	childLogger.Debug().Msg("GetRSAKey")
+	childLogger.Debug().Interface("",rsaKey).Msg("GetRSAKey")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -83,7 +86,7 @@ func (w WorkerRepository) GetHostPublicKey(rsaKey core.RSA_Key) (*core.RSA_Key, 
 	rows, err := client.Query(`SELECT rsa_public_key, host_id, tenant_id 
 								FROM rsa_key 
 								WHERE status = $1 
-								and tenant_id =$2 
+								and tenant_id =$2
 								and host_id =$3`, rsaKey.Status, rsaKey.TenantId, rsaKey.HostId)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("Query statement")

@@ -42,13 +42,17 @@ func (h HttpServer) StartHttpAppServer(httpWorkerAdapter *HttpWorkerAdapter) {
     health.HandleFunc("/health", httpWorkerAdapter.Health)
 	health.Use(MiddleWareHandlerHeader)
 
-	add_pubkey := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
-    add_pubkey.HandleFunc("/addTenantPublicKey", httpWorkerAdapter.AddTenantPublicKey)
-	add_pubkey.Use(MiddleWareHandlerHeader)
+	add_rsa_key := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    add_rsa_key.HandleFunc("/addRSAKey", httpWorkerAdapter.AddRSAKey)
+	add_rsa_key.Use(MiddleWareHandlerHeader)
 
-	get_pubkey := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
-	get_pubkey.HandleFunc("/getHostPublicKey", httpWorkerAdapter.GetHostPublicKey)
-	get_pubkey.Use(MiddleWareHandlerHeader)
+	get_rsa_key := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+	get_rsa_key.HandleFunc("/getRSAKey", httpWorkerAdapter.GetRSAKey)
+	get_rsa_key.Use(MiddleWareHandlerHeader)
+
+	check_signature_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    check_signature_rsa.HandleFunc("/checkSignatureRSA", httpWorkerAdapter.CheckSignatureRSA)
+	check_signature_rsa.Use(MiddleWareHandlerHeader)
 
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpAppServer.Server.Port),      	

@@ -30,6 +30,7 @@ var (
 	ErrFileSize		 	= errors.New("Tamanho do arquivo inválido (Muito grande)")
 	ErrStatusInternalServerError	= errors.New("Erro Interno !!!!")
 	ErrFileInvalid		= errors.New("Tipo do arquivo inválido")
+	ErrRSAPubKeyInvalid	= errors.New("A chave não é um RDS Public Key")
 )
 func HandlerHttpError(w http.ResponseWriter, err error) { 
 	switch err {

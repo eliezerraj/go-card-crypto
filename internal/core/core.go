@@ -36,13 +36,21 @@ type Server struct {
 	IdleTimeout		int `json:"idleTimeout"`
 	CtxTimeout		int `json:"ctxTimeout"`
 }
+//
+
+type FileEncrypted struct{
+	FileData		string 		`json:"file_data"`
+	RSAHosttKeyName	string 		`json:"rsa_host_key_name"`
+}
 
 //-------------
 type RSA_Key struct{
 	HostId	 		string 		`json:"host_id"`
 	TenantId 		string 		`json:"tenant_id"`
 	FileName		string 		`json:"file_name"`
+	TypeKey			string 		`json:"type_key"`
 	RSAPublicKey	string 		`json:"rsa_public_key"`
+	RSAPublicKeyByte []byte 	`json:"rsa_public_key_byte"`
 	Status			string 		`json:"status"`
 	CreatedDate  	time.Time 	`json:"created_date,omitempty"`
 }
@@ -78,6 +86,16 @@ func WithRSAPublicKey(rsaPublicKey string) func(*RSA_Key) {
 func WithStatus(status string) func(*RSA_Key) {
 	return func(s *RSA_Key) {
 	  s.Status = status
+	}
+}
+func WithRSAPublicKeyBytes(rsaPublicKeyByte []byte) func(*RSA_Key) {
+	return func(s *RSA_Key) {
+	  s.RSAPublicKeyByte = rsaPublicKeyByte
+	}
+}
+func WithTypeKey(typeKey string) func(*RSA_Key) {
+	return func(s *RSA_Key) {
+	  s.TypeKey = typeKey
 	}
 }
 //-------------
