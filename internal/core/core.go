@@ -38,9 +38,10 @@ type Server struct {
 }
 //
 
-type FileEncrypted struct{
-	FileData		string 		`json:"file_data"`
-	RSAHosttKeyName	string 		`json:"rsa_host_key_name"`
+type FileData struct{
+	MsgOriginal		string 	`json:"msg_original,omitempty"`
+	FileBytes		[]byte 	`json:"file_byte,omitempty"`
+	FileBytesB64	string 	`json:"file_b64,omitempty"`
 }
 
 //-------------

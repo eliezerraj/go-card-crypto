@@ -83,11 +83,12 @@ func (w WorkerRepository) GetRSAKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
 	client, _ := w.databaseHelper.GetConnection(ctx)
 	result_rsaKey := core.RSA_Key{}
 
-	rows, err := client.Query(`SELECT rsa_public_key, host_id, tenant_id 
+	rows, err := client.Query(`SELECT rsa_public_key, type_key ,host_id, tenant_id 
 								FROM rsa_key 
 								WHERE status = $1 
-								and tenant_id =$2
-								and host_id =$3`, rsaKey.Status, rsaKey.TenantId, rsaKey.HostId)
+								and type_key = $2
+								and tenant_id =$3
+								and host_id =$4`, rsaKey.Status, rsaKey.TypeKey, rsaKey.TenantId, rsaKey.HostId)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("Query statement")
 		return nil, erro.ErrConnectionDatabase
@@ -95,7 +96,7 @@ func (w WorkerRepository) GetRSAKey(rsaKey core.RSA_Key) (*core.RSA_Key, error){
 	defer rows.Close()
 
 	for rows.Next() {
-		err := rows.Scan( &result_rsaKey.RSAPublicKey, &result_rsaKey.HostId, &result_rsaKey.TenantId )
+		err := rows.Scan( &result_rsaKey.RSAPublicKey, &result_rsaKey.TypeKey ,&result_rsaKey.HostId, &result_rsaKey.TenantId )
 		if err != nil {
 			childLogger.Error().Err(err).Msg("Scan statement")
 			return nil, erro.ErrNotFound

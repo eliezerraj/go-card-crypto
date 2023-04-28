@@ -12,4 +12,6 @@ CREATE TABLE public."rsa_key" (
 	rsa_public_key 	varchar null,
 	status 			varchar null,
 	created_date 	timestamp
-)
+);
+
+select * from rsa_key rk;

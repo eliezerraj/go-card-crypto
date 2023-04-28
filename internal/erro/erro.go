@@ -30,8 +30,11 @@ var (
 	ErrFileSize		 	= errors.New("Tamanho do arquivo inválido (Muito grande)")
 	ErrStatusInternalServerError	= errors.New("Erro Interno !!!!")
 	ErrFileInvalid		= errors.New("Tipo do arquivo inválido")
-	ErrRSAPubKeyInvalid	= errors.New("A chave não é um RDS Public Key")
+	ErrRSAInvalidKey	= errors.New("A chave não é um RSA válida")
+	ErrRSAParseKey		= errors.New("Erro na conversão da chave RSA")
+	ErrDecode			= errors.New("Erro na decodificação do Base64")
 )
+
 func HandlerHttpError(w http.ResponseWriter, err error) { 
 	switch err {
 		case ErrUnauthorized:

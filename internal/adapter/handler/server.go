@@ -54,6 +54,22 @@ func (h HttpServer) StartHttpAppServer(httpWorkerAdapter *HttpWorkerAdapter) {
     check_signature_rsa.HandleFunc("/checkSignatureRSA", httpWorkerAdapter.CheckSignatureRSA)
 	check_signature_rsa.Use(MiddleWareHandlerHeader)
 
+	encrypt_data_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    encrypt_data_rsa.HandleFunc("/encryptDataWithRSAKey", httpWorkerAdapter.EncryptDataWithRSAKey)
+	encrypt_data_rsa.Use(MiddleWareHandlerHeader)
+
+	decrypt_data_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    decrypt_data_rsa.HandleFunc("/decryptDataWithRSAKey", httpWorkerAdapter.DecryptDataWithRSAKey)
+	decrypt_data_rsa.Use(MiddleWareHandlerHeader)
+
+	sign_data_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    sign_data_rsa.HandleFunc("/signDataWithRSAKey", httpWorkerAdapter.SignDataWithRSAKey)
+	sign_data_rsa.Use(MiddleWareHandlerHeader)
+
+	verify_data_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    verify_data_rsa.HandleFunc("/verifySignedDataWithRSAKey", httpWorkerAdapter.VerifySignedDataWithRSAKey)
+	verify_data_rsa.Use(MiddleWareHandlerHeader)
+
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpAppServer.Server.Port),      	
 		Handler:      myRouter,                	          
