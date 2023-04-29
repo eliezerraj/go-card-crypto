@@ -33,6 +33,7 @@ var (
 	ErrRSAInvalidKey	= errors.New("A chave não é um RSA válida")
 	ErrRSAParseKey		= errors.New("Erro na conversão da chave RSA")
 	ErrDecode			= errors.New("Erro na decodificação do Base64")
+	ErrFileToShort		= errors.New("Data muito curto")
 )
 
 func HandlerHttpError(w http.ResponseWriter, err error) { 

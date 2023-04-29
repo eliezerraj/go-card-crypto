@@ -10,7 +10,6 @@ import (
 //	"crypto/sha512"
 	"crypto/sha256"
 	"fmt"
-	b64 "encoding/base64"
     "crypto/x509"
     "encoding/pem"
 	"encoding/base64"
@@ -168,7 +167,7 @@ func (w WorkerService) EncryptDataWithRSAKey(rsaIdPublicKey string, fileBytesToE
 }
 
 // DecryptData with RSA private Key
-func (w WorkerService) DecryptDataWithRSAKey(rsaIdPrivateKey string, fileBytesToDecrypt []byte) (string, error){
+func (w WorkerService) DecryptDataWithRSAKey(rsaIdPrivateKey string, fileBytesToDecrypt []byte) (*core.FileData, error){
 	childLogger.Debug().Msg("DecryptDataWithRSAKey")
 
 	status := "ACTIVE" 
@@ -182,24 +181,25 @@ func (w WorkerService) DecryptDataWithRSAKey(rsaIdPrivateKey string, fileBytesTo
 	)
 	resp, err := w.workerRepository.GetRSAKey(*rsa_key_p)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	privPem, err := base64.StdEncoding.DecodeString(resp.RSAPublicKey)
 	if err != nil {
 		childLogger.Error().Err(err).Msg("DecodeString")
-		return "", err
+		return nil, err
 	}
 	// to validate the RDA priv Key
 	privateKey, err :=ParseRsaPrivateKeyFromPemStr(privPem)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	decryptedBytes, err := privateKey.Decrypt(	nil, 
 												fileBytesToDecrypt,
 												&rsa.OAEPOptions{Hash: crypto.SHA256})
 
-	return string(decryptedBytes), nil
+	result := core.FileData{ MsgOriginal: string(decryptedBytes) }
+	return &result, nil
 }
 
 // Sign a data
@@ -291,133 +291,77 @@ func (w WorkerService) VerifySignedDataWithRSAKey(rsaIdPublicKey string, fileByt
 	return true, nil
 }
 
+// Encryption Symetric
+func (w WorkerService) EncryptDataWithAESKey(aesIdKey string, fileBytesToEncrypt []byte) (*core.FileData, error){
+	childLogger.Debug().Msg("EncryptDataWithAESKey")
 
+	//Must have 32 bytes long
+	key := []byte(aesIdKey)
 
-
-
-
-
-
-
-
-
-
-// Check signature
-func (w WorkerService) CheckSignatureRSA(rsaIdVerifyKey string, fileBytesEncrypt []byte, fileBytesSignature []byte) (bool, error){
-	childLogger.Debug().Msg("CheckSignatureRSA")
-
-	status := "ACTIVE" 
-	typeKey := "rsa_public" 
-
-	// Retrieve RDS pub-key
-	rsa_key := core.NewRSAKey(
-		core.WithTenantId(rsaIdVerifyKey),
-		core.WithTypeKey(typeKey),
-		core.WithHostId(rsaIdVerifyKey),
-		core.WithStatus(status),
-	)
-
-	res, err := w.workerRepository.GetRSAKey(*rsa_key)
-	if err != nil {
-		return false, err
-	}
-
-	pubPem, err := base64.StdEncoding.DecodeString(res.RSAPublicKey)
-	if err != nil {
-		childLogger.Error().Err(err).Msg("DecodeString")
-		return false, err
-	}
-	// to validate the RDA pub Key
-	publicKey, err :=ParseRsaPublicKeyFromPemStr(pubPem)
-	if err != nil {
-		return false, err
-	}
-
-    //
-	typeKey = "rsa_private" 
-	rsa_key_p := core.NewRSAKey(
-		core.WithTenantId(rsaIdVerifyKey),
-		core.WithTypeKey(typeKey),
-		core.WithHostId(rsaIdVerifyKey),
-		core.WithStatus(status),
-	)
-	resp, err := w.workerRepository.GetRSAKey(*rsa_key_p)
-	if err != nil {
-		return false, err
-	}
-	privPem, err := base64.StdEncoding.DecodeString(resp.RSAPublicKey)
-	if err != nil {
-		childLogger.Error().Err(err).Msg("DecodeString")
-		return false, err
-	}
-	// to validate the RDA priv Key
-	privateKey, err :=ParseRsaPrivateKeyFromPemStr(privPem)
-	if err != nil {
-		return false, err
-	}
-
-	msg := []byte("verifiable message")
-
-	msgHash := sha256.New()
-	_, err = msgHash.Write(msg)
-	if err != nil {
-		panic(err)
-	}
-	msgHashSum := msgHash.Sum(nil)
-
-	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, msgHashSum, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	err = rsa.VerifyPSS(publicKey, crypto.SHA256, msgHashSum, signature, nil)
-	if err != nil {
-		fmt.Println("could not verify signature: ", err)
-		return false, err
-	}
-
-	fmt.Println("signature verified")
-
-	return true, nil
-}
-
-///
-func (w WorkerService) CreateAESKey(keyPhrase string) ([]byte, error){
-	childLogger.Debug().Msg("CreateAESKey")
-
-	aesBlock, err := aes.NewCipher([]byte(keyPhrase))
-	if err != nil {
-		log.Error().Err(err).Msg("ERRO FATAL CreateAESKey")
-		return nil, err
-	}
-
-	fmt.Println(aesBlock)
+	aesBlock, err := aes.NewCipher(key)
+    if err != nil {
+		childLogger.Error().Err(err).Msg("GetRSAKey")
+        return nil, err
+    }
 
 	gcmInstance, err := cipher.NewGCM(aesBlock)
 	if err != nil {
-		log.Error().Err(err).Msg("ERRO FATAL CreateAESKey")
+		childLogger.Error().Err(err).Msg("NewGCM")
 		return nil, err
 	}
 
 	nonce := make([]byte, gcmInstance.NonceSize())
     _, err = rand.Read(nonce)
     if err != nil {
-		log.Error().Err(err).Msg("ERRO FATAL CreateAESKey")
+		childLogger.Error().Err(err).Msg("GetRSAKey")
 		return nil, err
     }
 
-	// Writing ciphertext file
-	plainText := "meu segredo 123"
-	cipherText := gcmInstance.Seal(nonce, nonce, []byte(plainText), nil)
+	cipherText := gcmInstance.Seal(nonce, nonce, fileBytesToEncrypt, nil)
 
-	/*err = ioutil.WriteFile("./pubkey.bin", cipherText, 0777)
+	result := core.FileData{
+		FileBytes: cipherText,
+		FileBytesB64: base64.StdEncoding.EncodeToString(cipherText),
+	}
+
+	return &result, nil
+}
+
+// Decrypt Symetric
+func (w WorkerService) DecryptDataWithAESKey(aesIdKey string, fileBytesToDecrypt []byte) (*core.FileData, error){
+	childLogger.Debug().Msg("DecryptDataWithAESKey")
+
+	//Must have 32 bytes long
+	key := []byte(aesIdKey)
+
+	aesBlock, err := aes.NewCipher(key)
+    if err != nil {
+		childLogger.Error().Err(err).Msg("GetRSAKey")
+        return nil, err
+    }
+
+	gcmInstance, err := cipher.NewGCM(aesBlock)
 	if err != nil {
-		log.Error().Err(err).Msg("ERRO FATAL CreateAESKey")
+		childLogger.Error().Err(err).Msg("NewGCM")
 		return nil, err
-	}*/
+	}
 
-	blobString := b64.StdEncoding.EncodeToString(cipherText)
-	fmt.Println(blobString)
+	nonceSize := gcmInstance.NonceSize()
+	if len(fileBytesToDecrypt) < nonceSize {
+		childLogger.Error().Err(err).Msg("file to short")
+		return nil, err
+    }
 
-	return cipherText, nil
+	nonce, ciphertext := fileBytesToDecrypt[:nonceSize], fileBytesToDecrypt[nonceSize:]
+	res, err := gcmInstance.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		childLogger.Error().Err(err).Msg("NewGCM")
+		return nil, err
+	}
+
+	result := core.FileData{
+		MsgOriginal: string(res),
+	}
+
+	return &result, nil
 }

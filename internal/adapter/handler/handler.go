@@ -151,8 +151,6 @@ func (h *HttpWorkerAdapter) EncryptDataWithRSAKey(rw http.ResponseWriter, req *h
 	rsaIdPublicKey 	:= req.FormValue("rsa_id_public_key")
 	msg_encrypt 	:= req.FormValue("msg_encrypt")
 
-	fmt.Println("msg_encrypt : ",msg_encrypt)
-
 	var fileBytesToEncrypt []byte
 	if (msg_encrypt != ""){
 		fileBytesToEncrypt = []byte(msg_encrypt)
@@ -354,11 +352,8 @@ func (h *HttpWorkerAdapter) VerifySignedDataWithRSAKey(rw http.ResponseWriter, r
 	return
 }
 
-
-
-
-func (h *HttpWorkerAdapter) CheckSignatureRSA(rw http.ResponseWriter, req *http.Request) {
-	childLogger.Debug().Msg("CheckSignatureRSA")
+func (h *HttpWorkerAdapter) EncryptDataWithAESKey(rw http.ResponseWriter, req *http.Request) {
+	childLogger.Debug().Msg("EncryptDataWithAESKey")
 
 	err := req.ParseMultipartForm(MAX_UPLOAD_SIZE) //10 MB
 	if err != nil {
@@ -366,47 +361,35 @@ func (h *HttpWorkerAdapter) CheckSignatureRSA(rw http.ResponseWriter, req *http.
 		return
 	}
 
-	rsaIdVerifyKey := req.FormValue("rsa_id_verify_key")
+	aesIdKey 		:= req.FormValue("aesIdKey")
+	msg_encrypt 	:= req.FormValue("msg_encrypt")
 
-	// download file signed
-	file_signature, file_handler_signature, err := req.FormFile("file_signature")
-    if err != nil {
-        json.NewEncoder(rw).Encode(erro.ErrFile)
-		return
-    }
-    defer file_signature.Close()
+	fmt.Println("msg_encrypt : ",msg_encrypt)
 
-	if file_handler_signature.Size <= 0 {
-		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
-		return
-	}
-	
-	fileBytesSignature, err := ioutil.ReadAll(file_signature)
-    if err != nil {
-		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
-		return
-    }
+	var fileBytesToEncrypt []byte
+	if (msg_encrypt != ""){
+		fileBytesToEncrypt = []byte(msg_encrypt)
+	}else{
+		// download file encrypt
+		file_encrypt, file_handler_encrypt, err := req.FormFile("file_encrypt")
+		if err != nil {
+			json.NewEncoder(rw).Encode(erro.ErrFile)
+			return
+		}
+		defer file_encrypt.Close()
 
-	// download file encrypt
-	file_encrypt, file_handler_encrypt, err := req.FormFile("file_encrypt")
-	if err != nil {
-		json.NewEncoder(rw).Encode(erro.ErrFile)
-		return
-	}
-	defer file_encrypt.Close()
-	
-	if file_handler_encrypt.Size <= 0 {
-		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
-		return
-	}
-		
-	fileBytesEncrypt, err := ioutil.ReadAll(file_encrypt)
-	if err != nil {
-		json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
-		return
+		if file_handler_encrypt.Size <= 0 {
+			json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
+			return
+		}
+		fileBytesToEncrypt, err = ioutil.ReadAll(file_encrypt)
+		if err != nil {
+			json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
+			return
+		}
 	}
 
-	res, err := h.workerService.CheckSignatureRSA(rsaIdVerifyKey, fileBytesEncrypt, fileBytesSignature)
+	res, err := h.workerService.EncryptDataWithAESKey(aesIdKey, fileBytesToEncrypt)
 	if err != nil {
 		json.NewEncoder(rw).Encode(err.Error())
 		return
@@ -414,5 +397,53 @@ func (h *HttpWorkerAdapter) CheckSignatureRSA(rw http.ResponseWriter, req *http.
 
 	json.NewEncoder(rw).Encode(res)
 	return
+}
 
+func (h *HttpWorkerAdapter) DecryptDataWithAESKey(rw http.ResponseWriter, req *http.Request) {
+	childLogger.Debug().Msg("DecryptDataWithAESKey")
+
+	err := req.ParseMultipartForm(MAX_UPLOAD_SIZE) //10 MB
+	if err != nil {
+		json.NewEncoder(rw).Encode(erro.ErrFileSize)
+		return
+	}
+
+	aesIdKey 		:= req.FormValue("aesIdKey")
+	file_encrypt_b64 	:= req.FormValue("file_encrypt_b64")
+
+	var fileBytesToDecrypt []byte
+	if (file_encrypt_b64 != ""){
+		fileBytesToDecrypt, err = base64.StdEncoding.DecodeString(file_encrypt_b64)
+		if err != nil {
+			json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
+			return
+		}
+	}else{
+		// download file encrypt
+		file_decrypt, file_handler_decrypt, err := req.FormFile("file_decrypt")
+		if err != nil {
+			json.NewEncoder(rw).Encode(erro.ErrFile)
+			return
+		}
+		defer file_decrypt.Close()
+
+		if file_handler_decrypt.Size <= 0 {
+			json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
+			return
+		}
+		fileBytesToDecrypt, err = ioutil.ReadAll(file_decrypt)
+		if err != nil {
+			json.NewEncoder(rw).Encode(erro.ErrFileInvalid)
+			return
+		}
+	}
+
+	res, err := h.workerService.DecryptDataWithAESKey(aesIdKey, fileBytesToDecrypt)
+	if err != nil {
+		json.NewEncoder(rw).Encode(err.Error())
+		return
+	}
+
+	json.NewEncoder(rw).Encode(res)
+	return
 }

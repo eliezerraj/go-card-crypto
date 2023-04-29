@@ -50,10 +50,6 @@ func (h HttpServer) StartHttpAppServer(httpWorkerAdapter *HttpWorkerAdapter) {
 	get_rsa_key.HandleFunc("/getRSAKey", httpWorkerAdapter.GetRSAKey)
 	get_rsa_key.Use(MiddleWareHandlerHeader)
 
-	check_signature_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
-    check_signature_rsa.HandleFunc("/checkSignatureRSA", httpWorkerAdapter.CheckSignatureRSA)
-	check_signature_rsa.Use(MiddleWareHandlerHeader)
-
 	encrypt_data_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
     encrypt_data_rsa.HandleFunc("/encryptDataWithRSAKey", httpWorkerAdapter.EncryptDataWithRSAKey)
 	encrypt_data_rsa.Use(MiddleWareHandlerHeader)
@@ -69,6 +65,14 @@ func (h HttpServer) StartHttpAppServer(httpWorkerAdapter *HttpWorkerAdapter) {
 	verify_data_rsa := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
     verify_data_rsa.HandleFunc("/verifySignedDataWithRSAKey", httpWorkerAdapter.VerifySignedDataWithRSAKey)
 	verify_data_rsa.Use(MiddleWareHandlerHeader)
+
+	encrypt_data_aes := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    encrypt_data_aes.HandleFunc("/encryptDataWithAESKey", httpWorkerAdapter.EncryptDataWithAESKey)
+	encrypt_data_aes.Use(MiddleWareHandlerHeader)
+
+	decrypt_data_aes := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    decrypt_data_aes.HandleFunc("/decryptDataWithAESKey", httpWorkerAdapter.DecryptDataWithAESKey)
+	decrypt_data_aes.Use(MiddleWareHandlerHeader)
 
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpAppServer.Server.Port),      	
