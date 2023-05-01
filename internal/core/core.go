@@ -44,6 +44,11 @@ type FileData struct{
 	FileBytesB64	string 	`json:"file_b64,omitempty"`
 }
 
+type EncryptEnvelopData struct{
+	AESKeyEncrypt		string 	`json:"aes_key_encrypt,omitempty"`
+	FileEncrytpBytesB64	string 	`json:"file_encrypt_b64,omitempty"`
+}
+
 //-------------
 type RSA_Key struct{
 	HostId	 		string 		`json:"host_id"`

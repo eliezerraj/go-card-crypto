@@ -365,3 +365,50 @@ func (w WorkerService) DecryptDataWithAESKey(aesIdKey string, fileBytesToDecrypt
 
 	return &result, nil
 }
+
+// Envelop Encryption
+func (w WorkerService) EncryptAESKeyWithRSA(aesIdKey string, rsaIdPublicKey string, fileBytesToEncrypt []byte) (*core.EncryptEnvelopData, error){
+
+	// Encrypt File with AES Key
+	cipherFile, err := w.EncryptDataWithAESKey(aesIdKey, fileBytesToEncrypt)
+    if err != nil {
+		childLogger.Error().Err(err).Msg("EncryptDataWithAESKey")
+		return nil, err
+    }
+
+	cipherAESKey, err := w.EncryptDataWithRSAKey(rsaIdPublicKey, []byte(aesIdKey) )
+    if err != nil {
+		childLogger.Error().Err(err).Msg("EncryptDataWithAESKey")
+		return nil, err
+    }
+
+	result := core.EncryptEnvelopData{
+		AESKeyEncrypt: string(cipherAESKey.FileBytesB64),
+		FileEncrytpBytesB64: string(cipherFile.FileBytesB64),
+	}
+
+	return &result, nil
+}
+
+// Envelop Decryption
+func (w WorkerService) DecryptAESKeyWithRSA(rsaIdPrivateKey string, fileBytesAESDecrypt []byte, fileBytesToDecrypt []byte) (*core.FileData, error){
+
+	// decrypt AES Key
+	decryptAESKey, err := w.DecryptDataWithRSAKey(rsaIdPrivateKey, fileBytesAESDecrypt)
+    if err != nil {
+		childLogger.Error().Err(err).Msg("DecryptDataWithRSAKey")
+		return nil, err
+    }
+
+	decryptData, err := w.DecryptDataWithAESKey( decryptAESKey.MsgOriginal , fileBytesToDecrypt)
+    if err != nil {
+		childLogger.Error().Err(err).Msg("EncryptDataWithAESKey")
+		return nil, err
+    }
+
+	result := core.FileData{
+		MsgOriginal: string(decryptData.MsgOriginal),
+	}
+
+	return &result, nil
+}

@@ -74,6 +74,14 @@ func (h HttpServer) StartHttpAppServer(httpWorkerAdapter *HttpWorkerAdapter) {
     decrypt_data_aes.HandleFunc("/decryptDataWithAESKey", httpWorkerAdapter.DecryptDataWithAESKey)
 	decrypt_data_aes.Use(MiddleWareHandlerHeader)
 
+	encrypt_envelop_data := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    encrypt_envelop_data.HandleFunc("/encryptAESKeyWithRSA", httpWorkerAdapter.EncryptAESKeyWithRSA)
+	encrypt_envelop_data.Use(MiddleWareHandlerHeader)
+
+	decrypt_envelop_data := myRouter.Methods(http.MethodPost, http.MethodOptions).Subrouter()
+    decrypt_envelop_data.HandleFunc("/decryptAESKeyWithRSA", httpWorkerAdapter.DecryptAESKeyWithRSA)
+	decrypt_envelop_data.Use(MiddleWareHandlerHeader)
+
 	srv := http.Server{
 		Addr:         ":" +  strconv.Itoa(h.httpAppServer.Server.Port),      	
 		Handler:      myRouter,                	          

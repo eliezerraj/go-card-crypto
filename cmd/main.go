@@ -48,9 +48,6 @@ func init(){
 
 	httpAppServer.Server = server
 
-	//httpAppServer.AppInfo.Name = "go-card-crypto"
-	//httpAppServer.AppInfo.Version = "1.0"
-
 	getEnv()
 }
 
@@ -73,10 +70,28 @@ func getEnv() {
 	if os.Getenv("VERSION") !=  "" {
 		version = os.Getenv("VERSION")
 	}
-
 	if os.Getenv("PORT") !=  "" {
 		intVar, _ := strconv.Atoi(os.Getenv("PORT"))
 		httpAppServer.Server.Port = intVar
+	}
+
+	if os.Getenv("DB_HOST") !=  "" {
+		envDB.Host = os.Getenv("DB_HOST")
+	}
+	if os.Getenv("DB_PORT") !=  "" {
+		envDB.Port = os.Getenv("DB_PORT")
+	}
+	if os.Getenv("DB_USER") !=  "" {
+		envDB.User = os.Getenv("DB_USER")
+	}
+	if os.Getenv("DB_PASSWORD") !=  "" {	
+		envDB.Password = os.Getenv("DB_PASSWORD")
+	}
+	if os.Getenv("DB_NAME") !=  "" {	
+		envDB.DatabaseName = os.Getenv("DB_NAME")
+	}
+	if os.Getenv("DB_SCHEMA") !=  "" {	
+		envDB.Schema = os.Getenv("DB_SCHEMA")
 	}
 
 }
@@ -114,5 +129,4 @@ func main() {
 	httpServer := handler.NewHttpAppServer(httpAppServer)
 
 	httpServer.StartHttpAppServer(httpWorkerAdapter)
-	
 }
